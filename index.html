@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokemon</title>
+</head>
+<body>
+<h1>Pokémon Explorer</h1>
+<label for="pokemon-select">Choose a Pokémon:</label>
+<select id="pokemon-select">
+    <option value="">Loading...</option>
+</select>
+
+<div id="pokemon-container" style="display: none">
+    <h2 id="pokemon-name"></h2>
+    <img id="pokemon-image" src="" alt="Pokemon">
+    <p><strong>Type:</strong> <span id="pokemon-type"></span></p>
+    <p><strong>Base Stats:</strong></p>
+    <ul id="pokemon-stats"></ul>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const select = document.getElementById("pokemon-select");
+        const container = document.getElementById("pokemon-container");
+        const nameElem = document.getElementById("pokemon-name");
+        const imageElem = document.getElementById("pokemon-image");
+        const typeElem = document.getElementById("pokemon-type");
+        const statsElem = document.getElementById("pokemon-stats");
+
+        // Fetch list of Pokémon
+        fetch("https://pokeapi.co/api/v2/pokemon?limit=10")
+            .then(response => response.json())
+            .then(data => {
+                select.innerHTML = `<option value="">Select a Pokémon</option>`; // Reset dropdown
+                data.results.forEach(pokemon => {
+                    const option = document.createElement("option");
+                    option.value = pokemon.name;
+                    option.textContent = pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1);
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => console.error("Error fetching Pokémon list:", error));
+
+        // Fetch and display Pokémon details
+        select.addEventListener("change", () => {
+            const pokemonName = select.value;
+            if (!pokemonName) return;
+
+            fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update Pokémon details
+                    nameElem.textContent = data.name.charAt(0).toUpperCase() + data.name.slice(1);
+                    imageElem.src = data.sprites.front_default;
+                    imageElem.alt = data.name;
+
+                    // Display Types
+                    typeElem.textContent = data.types.map(type => type.type.name).join(", ");
+
+                    // Display Stats
+                    statsElem.innerHTML = "";
+                    data.stats.forEach(stat => {
+                        const li = document.createElement("li");
+                        li.textContent = `${stat.stat.name}: ${stat.base_stat}`;
+                        statsElem.appendChild(li);
+                    });
+
+                    container.style.display = "block"; // Show details section
+                })
+                .catch(error => console.error("Error fetching Pokémon details:", error));
+        });
+    });
+</script>
+
+
+
+</body>
+</html>
